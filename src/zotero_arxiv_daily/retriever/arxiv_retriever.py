@@ -149,8 +149,12 @@ def _parse_entry_time(struct_time: Any) -> datetime:
 
 
 def _entry_to_arxiv_result(entry: Any) -> ArxivResult:
-    raw_id = getattr(entry, "id", "") or ""
-    paper_id = raw_id.removeprefix("oai:arXiv.org:")
+       raw_id = getattr(entry, "id", "") or ""
+    paper_id = raw_id
+    for prefix in ("oai:arXiv.org:", "http://arxiv.org/abs/", "https://arxiv.org/abs/"):
+        if paper_id.startswith(prefix):
+            paper_id = paper_id[len(prefix):]
+            break
     title_raw = getattr(entry, "title", "") or ""
     title = " ".join(title_raw.split())
 
@@ -215,9 +219,10 @@ class ArxivRetriever(BaseRetriever):
             raise ValueError("category must be specified for arxiv.")
 
     def _retrieve_raw_papers(self) -> list[ArxivResult]:
-        query = '+'.join(self.config.source.arxiv.category)
+              query = '+'.join(self.config.source.arxiv.category)
         include_cross_list = self.config.source.arxiv.get("include_cross_list", False)
-        rss_url = f"https://rss.arxiv.org/atom/{query}"
+        categories_query = '+OR+'.join(f"cat:{c}" for c in self.config.source.arxiv.category)
+        rss_url = f"https://export.arxiv.org/api/query?search_query={categories_query}&sortBy=submittedDate&sortOrder=descending&max_results=100"
 
         # Get latest papers from arxiv RSS feed with retry
         retry_num = 5
