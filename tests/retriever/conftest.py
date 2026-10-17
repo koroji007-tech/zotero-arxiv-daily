@@ -1,16 +1,12 @@
 """Retriever-specific fixtures."""
-
 import feedparser
 import pytest
-
 
 @pytest.fixture()
 def mock_feedparser(monkeypatch):
     """Patch feedparser.parse to return the local RSS fixture for arXiv URLs.
-
     The arxiv library passes bytes (response.content) to feedparser.parse,
     so we check for both str and bytes URL types.
-
     Returns the parsed result so tests can assert against it.
     """
     parsed = feedparser.parse("tests/retriever/arxiv_rss_example.xml")
@@ -20,7 +16,7 @@ def mock_feedparser(monkeypatch):
         target = url_or_bytes
         if isinstance(target, bytes):
             target = target.decode("utf-8", errors="ignore")
-        if isinstance(target, str) and "rss.arxiv.org" in target:
+        if isinstance(target, str) and ("rss.arxiv.org" in target or "export.arxiv.org" in target):
             return parsed
         return raw_parse(url_or_bytes, *args, **kwargs)
 
@@ -33,7 +29,6 @@ def mock_biorxiv_api(monkeypatch):
     """Patch requests.get to return the canned bioRxiv API response."""
     import requests
     from types import SimpleNamespace
-
     from tests.canned_responses import SAMPLE_BIORXIV_API_RESPONSE
 
     original_get = requests.get
