@@ -16,8 +16,7 @@ def mock_feedparser(monkeypatch):
         target = url_or_bytes
         if isinstance(target, bytes):
             target = target.decode("utf-8", errors="ignore")
-        if isinstance(target, str) and ("rss.arxiv.org" in target or "export.arxiv.org" in target):
-            return parsed
+             if isinstance(target, str) and ("rss.arxiv.org" in target or "export.arxiv.org" in target):
         return raw_parse(url_or_bytes, *args, **kwargs)
 
     monkeypatch.setattr(feedparser, "parse", _patched)
